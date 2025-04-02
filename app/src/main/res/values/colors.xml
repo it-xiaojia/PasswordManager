@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--背景1 背景-->
+    <color name="background1">#f8fff8</color>
+    <!--背景2 主界面-->
+    <color name="background2">#e5f6e4</color>
+    <!--背景3 密码条目、新增密码后默认背景-->
+    <color name="background3">#dcf1db</color>
+    <!--新增、添加条目、添加分组、保存按钮、输入框激活、输入框激活后提示文字-->
+    <color name="button">#43a047</color>
+    <!--黑色字体与主图标颜色-->
+    <color name="fontBlack">#3c423a</color>
+    <!--密码数量字体颜色-->
+    <color name="fontWhite">#fffcf9</color>
+    <!--密码数量气泡颜色、主图标颜色-->
+    <color name="icon">#f57c00</color>
+    <!--输入框线颜色、checkbox颜色-->
+    <color name="input">#72796f</color>
+    <!--弱密码-->
+    <color name="weakPass">#e03838</color>
+    <!--中等密码-->
+    <color name="midPass">#db9837</color>
+    <!--高强度密码-->
+    <color name="strongPass">#76a818</color>
+</resources>
