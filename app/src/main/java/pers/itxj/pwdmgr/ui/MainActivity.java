@@ -81,10 +81,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         passwordItemAdapter.setOnItemClickListener(passwordItem -> {
             // 点击查看
             this.currentSelectPasswordItem = passwordItem;
+            toPasswordOperationActivity(true);
             // 更新访问时间
             passwordItem.setVisitedAt(DateUtils.getCurrentDate(CommonConstant.DATE_FORMAT));
             passwordViewModel.update(passwordItem);
-            toPasswordOperationActivity(true);
         });
 
         // 列表项长按
