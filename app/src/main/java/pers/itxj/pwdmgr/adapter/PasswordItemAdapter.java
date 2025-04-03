@@ -1,10 +1,13 @@
 package pers.itxj.pwdmgr.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -23,11 +26,15 @@ import pers.itxj.pwdmgr.data.PasswordItem;
  * 创建日期： 2025/3/31
  * 描述： 密码条目适配器
  */
-public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapter.ViewHolder> {
+public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapter.ViewHolder> implements Filterable {
     /**
-     * 密码条目列表
+     * 密码条目列表（原始数据）
      */
-    private List<PasswordItem> passwordItemList = new ArrayList<>();
+    private final List<PasswordItem> passwordItemList;
+    /**
+     * 过滤后的密码条目列表
+     */
+    private final List<PasswordItem> filteredPasswordItemList;
     /**
      * 密码条目单击事件监听
      */
@@ -41,6 +48,11 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
      */
     private boolean isCheck = false;
 
+    public PasswordItemAdapter(List<PasswordItem> passwordItemList) {
+        this.passwordItemList = new ArrayList<>(passwordItemList);
+        this.filteredPasswordItemList = new ArrayList<>(passwordItemList);
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
@@ -49,12 +61,16 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
         return new ViewHolder(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
-        PasswordItem passwordItem = passwordItemList.get(position);
+        PasswordItem passwordItem = filteredPasswordItemList.get(position);
         if (passwordItem != null) {
             viewHolder.getTvTitle().setText(passwordItem.getTitle());
             viewHolder.getTvUsername().setText(passwordItem.getUsername());
+            viewHolder.getTvCreatedAt().setText("创建时间：" + passwordItem.getCreatedAt());
+            viewHolder.getTvUpdatedAt().setText("修改时间：" + passwordItem.getUpdatedAt());
+            viewHolder.getTvVisitedAt().setText("访问时间：" + passwordItem.getVisitedAt());
         }
         // 设置长按选中与取消选中时密码条目的样式
         Drawable drawable;
@@ -70,16 +86,62 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
         viewHolder.getPasswordItemLayout().setBackground(drawable);
         viewHolder.getTvTitle().setTextColor(colorRes);
         viewHolder.getTvUsername().setTextColor(colorRes);
+
+        // 点击事件处理
+        viewHolder.itemView.setOnClickListener(v -> {
+            if (itemClickListener != null && position != RecyclerView.NO_POSITION) {
+                itemClickListener.onItemClick(passwordItem);
+            }
+        });
+
+        // 长按事件处理
+        viewHolder.itemView.setOnLongClickListener(v -> {
+            if (itemLongClickListener != null && position != RecyclerView.NO_POSITION) {
+                itemLongClickListener.onItemLongClick(position, passwordItem);
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
     public int getItemCount() {
-        return passwordItemList.size();
+        return filteredPasswordItemList.size();
     }
 
     @Override
     public long getItemId(int position) {
         return position;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<PasswordItem> filteredList = new ArrayList<>();
+                if (constraint == null || constraint.length() == 0) {
+                    filteredList.addAll(passwordItemList);
+                } else {
+                    String filterPattern = constraint.toString().toLowerCase().trim();
+                    for (PasswordItem item : passwordItemList) {
+                        if (item.getTitle().toLowerCase().contains(filterPattern) || item.getUsername().toLowerCase().contains(filterPattern)) {
+                            filteredList.add(item);
+                        }
+                    }
+                }
+                FilterResults results = new FilterResults();
+                results.values = filteredList;
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                filteredPasswordItemList.clear();
+                filteredPasswordItemList.addAll((List) results.values);
+                notifyDataSetChanged();
+            }
+        };
     }
 
     /**
@@ -88,7 +150,10 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
      * @param passwordItemList 密码条目列表
      */
     public void setPasswordItemList(List<PasswordItem> passwordItemList) {
-        this.passwordItemList = passwordItemList;
+        this.passwordItemList.clear();
+        this.passwordItemList.addAll(passwordItemList);
+        filteredPasswordItemList.clear();
+        filteredPasswordItemList.addAll(passwordItemList);
         notifyDataSetChanged();
     }
 
@@ -99,7 +164,11 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
      * @return 返回密码条目对象
      */
     public PasswordItem getPasswordItemAt(int position) {
-        return passwordItemList.get(position);
+        return filteredPasswordItemList.get(position);
+    }
+
+    public List<PasswordItem> getPasswordItemList() {
+        return passwordItemList;
     }
 
     /**
@@ -113,32 +182,22 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
         notifyItemChanged(position);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         private final LinearLayout passwordItemLayout;
         private final TextView tvTitle;
         private final TextView tvUsername;
+        private final TextView tvCreatedAt;
+        private final TextView tvUpdatedAt;
+        private final TextView tvVisitedAt;
 
         public ViewHolder(View view) {
             super(view);
             passwordItemLayout = view.findViewById(R.id.password_item_layout);
             tvTitle = view.findViewById(R.id.tv_title);
             tvUsername = view.findViewById(R.id.tv_username);
-
-            view.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (itemClickListener != null && position != RecyclerView.NO_POSITION) {
-                    itemClickListener.onItemClick(passwordItemList.get(position));
-                }
-            });
-
-            view.setOnLongClickListener(v -> {
-                int position = getAdapterPosition();
-                if (itemLongClickListener != null && position != RecyclerView.NO_POSITION) {
-                    itemLongClickListener.onItemLongClick(position, passwordItemList.get(position));
-                    return true;
-                }
-                return false;
-            });
+            tvCreatedAt = view.findViewById(R.id.tv_created_at);
+            tvUpdatedAt = view.findViewById(R.id.tv_updated_at);
+            tvVisitedAt = view.findViewById(R.id.tv_visited_at);
         }
 
         public LinearLayout getPasswordItemLayout() {
@@ -151,6 +210,18 @@ public class PasswordItemAdapter extends RecyclerView.Adapter<PasswordItemAdapte
 
         public TextView getTvUsername() {
             return tvUsername;
+        }
+
+        public TextView getTvCreatedAt() {
+            return tvCreatedAt;
+        }
+
+        public TextView getTvUpdatedAt() {
+            return tvUpdatedAt;
+        }
+
+        public TextView getTvVisitedAt() {
+            return tvVisitedAt;
         }
     }
 

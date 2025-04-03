@@ -22,13 +22,13 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"/>
-        <ImageButton
+        <Button
+            android:id="@+id/btn_sort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:background="@color/button"
-            android:contentDescription="排序"
-            android:src="@android:drawable/ic_menu_sort_by_size"/>
+            android:text="排序"/>
     </LinearLayout>
 
     <FrameLayout

@@ -1,5 +1,6 @@
 package pers.itxj.pwdmgr.data;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -10,13 +11,13 @@ import androidx.room.PrimaryKey;
  * 描述： 密码条目
  */
 @Entity(tableName = "password_item")
-public class PasswordItem {
+public class PasswordItem implements Comparable<PasswordItem> {
     /**
      * 密码主键
      */
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "pass_id")
-    private int passId;
+    private Integer passId;
 
     /**
      * 标题
@@ -57,11 +58,11 @@ public class PasswordItem {
     public PasswordItem() {
     }
 
-    public int getPassId() {
+    public Integer getPassId() {
         return passId;
     }
 
-    public void setPassId(int passId) {
+    public void setPassId(Integer passId) {
         this.passId = passId;
     }
 
@@ -113,6 +114,7 @@ public class PasswordItem {
         this.visitedAt = visitedAt;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "PasswordItem{" +
@@ -125,4 +127,10 @@ public class PasswordItem {
                 ", visitedAt='" + visitedAt + '\'' +
                 '}';
     }
+
+    @Override
+    public int compareTo(PasswordItem passwordItem) {
+        return passId.compareTo(passwordItem.getPassId());
+    }
+
 }
